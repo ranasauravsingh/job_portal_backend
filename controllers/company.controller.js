@@ -1,5 +1,7 @@
 import { Company } from "../models/company.schema.js";
 import { handleError } from "../_helpers/common_helper.js";
+import getDataUri from "../utils/datauri.js";
+import cloudinary from "../utils/cloudinary.js";
 
 export const companyRegister = async (req, res) => {
 	try {
@@ -28,7 +30,7 @@ export const companyRegister = async (req, res) => {
 
 		return res.status(201).json({
 			message: "Company registered successfully.",
-			company: newCompany,
+			data: newCompany,
 			success: true,
 		});
 	} catch (error) {
@@ -50,7 +52,7 @@ export const getCompany = async (req, res) => {
 
 		return res.status(200).json({
 			message: "Companies fetched successfully.",
-			companies,
+			data: companies,
 			success: true,
 		});
 	} catch (error) {
@@ -71,7 +73,7 @@ export const getCompanyById = async (req, res) => {
 
 		return res.status(200).json({
 			message: "Company fetched successfully.",
-			company,
+			data: company,
 			success: true,
 		});
 	} catch (error) {
@@ -84,7 +86,16 @@ export const companyUpdate = async (req, res) => {
 		const { name, description, website, location } = req?.body;
 		const file = req?.file;
 
-		const updateData = { name, description, website, location };
+		const fileUri = getDataUri(file);
+		const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
+
+		const updateData = {
+			name,
+			description,
+			website,
+			location,
+			logo: (cloudResponse && cloudResponse.secure_url) || "",
+		};
 		const companyId = req?.params?.id;
 
 		const company = await Company.findByIdAndUpdate(companyId, updateData, {
