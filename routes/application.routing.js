@@ -15,7 +15,7 @@ const router = express.Router();
 
 router.route("/apply/:id").get(authGuard, applyJob);
 router.route("/get").get(authGuard, getAppliedJobs);
-router.route("/:id/applicants").get(authGuard, getApplicants);
-router.route("/status/:id/update").post(authGuard, updateStatus);
+router.route("/applicants/:id").get(authGuard, getApplicants);
+router.route("/status/update/:id").post(authGuard, updateStatus);
 
 export default router;
