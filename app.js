@@ -29,6 +29,7 @@ app.use(cookieParser());
 const corsOptions = {
 	origin: process.env.FRONTEND_DOMAIN,
 	credentials: true,
+	allowedHeaders: ['Content-Type', 'Authorization'],
 };
 app.use(cors(corsOptions));
 
