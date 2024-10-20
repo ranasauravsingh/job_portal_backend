@@ -36,19 +36,21 @@ export const postJob = async (req, res) => {
 		const job = await Job.create({
 			title,
 			description,
-			requirements: requirements,
+			requirements: requirements
+				?.split(",")
+				?.map((requirement) => requirement?.trim()),
 			salary: Number(salary),
 			location,
 			jobType,
-			experienceLevel: experience,
-			positions,
+			experienceLevel: Number(experience),
+			positions: Number(positions),
 			company: companyId,
 			createdBy: userId,
 		});
 
 		return res.status(201).json({
 			message: "New job created successfully.",
-			job,
+			data: job,
 			success: true,
 		});
 	} catch (error) {
@@ -72,7 +74,7 @@ export const getAdminJobs = async (req, res) => {
 		}
 
 		return res.status(200).json({
-			jobs,
+			data: jobs,
 			success: true,
 		});
 	} catch (error) {
@@ -104,7 +106,7 @@ export const getAllJobs = async (req, res) => {
 		}
 
 		return res.status(200).json({
-			jobs,
+			data: jobs,
 			success: true,
 		});
 	} catch (error) {
@@ -126,7 +128,7 @@ export const getJobById = async (req, res) => {
 			});
 		}
 
-		return res.status(200).json({ job, success: true });
+		return res.status(200).json({ data: job, success: true });
 	} catch (error) {
 		handleError(res, error);
 	}
