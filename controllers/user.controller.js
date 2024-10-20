@@ -3,6 +3,8 @@ import jwt from "jsonwebtoken";
 
 import { User } from "../models/user.schema.js";
 import { handleError } from "../_helpers/common_helper.js";
+import getDataUri from "../utils/datauri.js";
+import cloudinary from "../utils/cloudinary.js";
 
 export const userRegistration = async (req, res) => {
 	try {
@@ -14,6 +16,10 @@ export const userRegistration = async (req, res) => {
 				success: false,
 			});
 		}
+
+		const file = req?.file;
+		const fileUri = getDataUri(file);
+		const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
 
 		const user = await User.findOne({ email });
 		if (user) {
@@ -31,6 +37,9 @@ export const userRegistration = async (req, res) => {
 			phoneNumber,
 			password: hashedPassword,
 			role,
+			profile: {
+				profilePhoto: (cloudResponse && cloudResponse.secure_url) || "",
+			},
 		});
 
 		return res.status(201).json({
@@ -119,13 +128,10 @@ export const userLogout = async (req, res) => {
 	try {
 		const userId = req?.id; //? middleware authentication
 
-		return res
-			.status(200)
-			.cookie(`token`, "", { maxAge: 0 })
-			.json({
-				message: "User logged out successfully.",
-				success: true,
-			});
+		return res.status(200).cookie(`token`, "", { maxAge: 0 }).json({
+			message: "User logged out successfully.",
+			success: true,
+		});
 	} catch (error) {
 		handleError(res, error);
 	}
@@ -144,6 +150,9 @@ export const userUpdateProfile = async (req, res) => {
 		// }
 
 		//? File cloudinary comes here later on...
+
+		const fileUri = getDataUri(file);
+		const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
 
 		const userId = req?.id; //? middleware authentication
 		const user = await User.findById(userId);
@@ -175,24 +184,28 @@ export const userUpdateProfile = async (req, res) => {
 				phoneNumber,
 			};
 		}
-		if (bio) {
+		if (bio || skills) {
 			updatedUserData = {
 				...updatedUserData,
 				profile: {
+					...user?.profile,
 					bio,
-				},
-			};
-		}
-		if (skills) {
-			updatedUserData = {
-				...updatedUserData,
-				profile: {
-					skills,
+					skills: skills?.split(",")?.map((skill) => skill?.trim()),
 				},
 			};
 		}
 
 		//? Resume comes here later on...
+		if (cloudResponse) {
+			updatedUserData = {
+				...updatedUserData,
+				profile: {
+					...updatedUserData?.profile,
+					resume: cloudResponse.secure_url, // save the cloudinary url
+					resumeName: file.originalname, // Save the original file name
+				},
+			};
+		}
 
 		await user.set(updatedUserData);
 		await user.save();
