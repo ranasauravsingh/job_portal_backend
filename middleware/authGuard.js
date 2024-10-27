@@ -10,6 +10,8 @@ const authGuard = async (req, res, next) => {
 
 	try {
 
+		console.log("req--->", req);
+
 		const token = req?.cookies?.token;
 		if (!token) {
 			return res.status(401).json({
