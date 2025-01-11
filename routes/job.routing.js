@@ -14,7 +14,8 @@ import authGuard from "../middleware/authGuard.js";
 const router = express.Router();
 
 router.route("/post").post(authGuard, postJob);
-router.route("/get").get(authGuard, getAllJobs);
+router.route("/get").get(getAllJobs);
+// router.route("/get").get(authGuard, getAllJobs);
 router.route("/get-admin-jobs").get(authGuard, getAdminJobs);
 router.route("/get/:id").get(authGuard, getJobById);
 
