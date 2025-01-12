@@ -125,6 +125,47 @@ export const userLogin = async (req, res) => {
 	}
 };
 
+export const updateFcmToken = async (req, res) => {
+	try {
+		const { userFcmToken, platform } = req?.body;
+
+		if (!userFcmToken || !platform) {
+			return res.status(400).json({
+				message: "Missing required fields",
+				success: false,
+			});
+		}
+
+		const userId = req?.id; //? middleware authentication
+		const user = await User.findById(userId);
+
+		// Check if the platform already exists
+		let platformExists = false;
+		user.deviceInfo = user.deviceInfo.map((device) => {
+			if (device?.platform === platform) {
+				platformExists = true;
+				return { ...device, userFcmToken }; // Update token for existing platform
+			}
+			return device;
+		});
+
+		// If platform does not exist, add a new entry
+		if (!platformExists) {
+			user.deviceInfo.push({ userFcmToken, platform });
+		}
+
+		await user.save();
+
+		return res.status(200).json({
+			message: "User FCM token updated successfully.",
+			success: true,
+		});
+
+	} catch (error) {
+		handleError(res, error);
+	}
+};
+
 export const userLogout = async (req, res) => {
 	try {
 		const userId = req?.id; //? middleware authentication

@@ -48,6 +48,12 @@ const userSchema = new mongoose.Schema(
 				default: "",
 			},
 		},
+		deviceInfo: [
+			{
+				userFcmToken: { type: String, required: true },
+				platform: { type: String, required: true },
+			},
+		],
 	},
 	{
 		timestamps: true,
