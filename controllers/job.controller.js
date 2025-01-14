@@ -133,3 +133,70 @@ export const getJobById = async (req, res) => {
 		handleError(res, error);
 	}
 };
+
+export const jobUpdate = async (req, res) => {
+	try {
+		const {
+			title,
+			description,
+			requirements,
+			salary,
+			location,
+			jobType,
+			experience,
+			positions,
+			companyId,
+		} = req?.body;
+
+		if (
+			!title ||
+			!description ||
+			!requirements ||
+			!salary ||
+			!location ||
+			!jobType ||
+			!experience ||
+			!positions ||
+			!companyId
+		) {
+			return res.status(400).json({
+				message: "Something is missing.",
+				success: false,
+			});
+		}
+
+		const updatedData = {
+			title,
+			description,
+			requirements: requirements
+				?.split(",")
+				?.map((requirement) => requirement?.trim()),
+			salary: Number(salary),
+			location,
+			jobType,
+			experienceLevel: Number(experience),
+			positions: Number(positions),
+			company: companyId,
+		};
+
+		const jobId = req?.params?.id;
+
+		const job = await Job.findByIdAndUpdate(jobId, updatedData, {
+			new: true,
+		});
+
+		if (!job) {
+			return res.status(404).json({
+				message: "Job not found.",
+				success: false,
+			});
+		}
+
+		return res.status(200).json({
+			message: "Job information updated.",
+			success: true,
+		});
+	} catch (error) {
+		handleError(res, error);
+	}
+};
