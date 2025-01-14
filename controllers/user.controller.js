@@ -18,8 +18,11 @@ export const userRegistration = async (req, res) => {
 		}
 
 		const file = req?.file;
-		const fileUri = getDataUri(file);
-		const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
+		let cloudResponse = null;
+		if(file) {
+			const fileUri = getDataUri(file);
+			cloudResponse = await cloudinary.uploader.upload(fileUri.content);
+		}
 
 		const user = await User.findOne({ email });
 		if (user) {
