@@ -1,6 +1,7 @@
 import { Job } from "../models/job.schema.js";
+import { User } from "../models/user.schema.js";
 import { Application } from "../models/application.schema.js";
-import { handleError } from "../_helpers/common_helper.js";
+import { handleError, sendFcmNotification } from "../_helpers/common_helper.js";
 
 export const applyJob = async (req, res) => {
 	try {
@@ -131,6 +132,31 @@ export const updateStatus = async (req, res) => {
 		// update the status
 		application.status = status?.toLowerCase();
 		await application.save();
+
+		const user = await User.findById(application?.applicant);
+
+		// ? Send notification to the user
+		if (user) {
+			const notificationPayload = {
+				title: "Application Status Updated",
+				body: `Your application status has been updated to ${status}`,
+				data: {
+					type: "application_status",
+					applicationId: applicationId,
+				},
+			};
+
+			if (user?.deviceInfo?.length > 0) {
+				user?.deviceInfo?.forEach(async (device) => {
+					if (device?.userFcmToken) {
+						await sendFcmNotification(
+							device?.userFcmToken,
+							notificationPayload
+						);
+					}
+				});
+			}
+		}
 
 		return res.status(200).json({
 			message: "Status updated successfully.",
