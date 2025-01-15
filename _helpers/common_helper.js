@@ -1,5 +1,5 @@
 import axios from "axios";
-import getFcmAccessToken from "../utils/fetchFCMAccessToken.js";
+import getFcmAccessToken from "../utils/fetchFcmAccessToken.js";
 
 export const handleError = (res, error) => {
 	return res.status(400).json({ error: `Something went wrong: ${error}` });
